@@ -23,13 +23,17 @@ module.exports = (app) => {
 
     const { isPreRelease } = getInput({ config })
 
-    if (config === null) return
+    if (config === null) {
+      log({ app, context, message: `No configuration found.` })
+      return
+    }
 
     // GitHub Actions merge payloads slightly differ, in that their ref points
     // to the PR branch instead of refs/heads/master
     const ref = process.env['GITHUB_REF'] || context.payload.ref
 
     if (!isTriggerableReference({ ref, app, context, config })) {
+      log({ app, context, message: `Not a triggerable reference` })
       return
     }
 
