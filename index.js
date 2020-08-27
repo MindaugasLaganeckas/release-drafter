@@ -1,3 +1,5 @@
+log({ app, context, message: `Let's make release!` })
+
 const { getConfig } = require('./lib/config')
 const { isTriggerableReference } = require('./lib/triggerable-reference')
 const {
