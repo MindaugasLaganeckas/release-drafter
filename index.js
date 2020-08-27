@@ -28,6 +28,8 @@ module.exports = (app) => {
       return
     }
 
+    log({ app, context, message: context })
+    
     // GitHub Actions merge payloads slightly differ, in that their ref points
     // to the PR branch instead of refs/heads/master
     const ref = process.env['GITHUB_REF'] || context.payload.ref
