@@ -11,7 +11,7 @@ const { sortPullRequests } = require('./lib/sort-pull-requests')
 const log = require('./lib/log')
 const core = require('@actions/core')
 
-log({ app, context, message: `Let's make release!` })
+console.log("Let's make release")
 
 module.exports = (app) => {
   app.on('push', async (context) => {
@@ -26,19 +26,19 @@ module.exports = (app) => {
 
     const { isPreRelease } = getInput({ config })
     log({ app, context, message: `Is prerelease:` + isPreRelease })
-    
+
     if (config === null) {
       log({ app, context, message: `No configuration found.` })
       return
     }
 
     log({ app, context, message: context })
-    
+
     // GitHub Actions merge payloads slightly differ, in that their ref points
     // to the PR branch instead of refs/heads/master
     const ref = process.env['GITHUB_REF'] || context.payload.ref
     log({ app, context, message: `Value of REF:` + ref })
-    
+
     if (!isTriggerableReference({ ref, app, context, config })) {
       log({ app, context, message: `Not a triggerable reference` })
       return
