@@ -14,86 +14,86 @@ const core = require('@actions/core')
 console.log("Let's make release")
 
 module.exports = (app) => {
-  //app.on('push', async (context) => {
-  const { shouldDraft, configName, version, tag, name } = getInput()
+  app.on('workflow_dispatch', async (context) => {
+    const { shouldDraft, configName, version, tag, name } = getInput()
 
-  log({ app, context, message: `Init config!` })
-  const config = await getConfig({
-    app,
-    context,
-    configName,
-  })
-
-  const { isPreRelease } = getInput({ config })
-  log({ app, context, message: `Is prerelease:` + isPreRelease })
-
-  if (config === null) {
-    log({ app, context, message: `No configuration found.` })
-    return
-  }
-
-  log({ app, context, message: context })
-
-  // GitHub Actions merge payloads slightly differ, in that their ref points
-  // to the PR branch instead of refs/heads/master
-  const ref = process.env['GITHUB_REF'] || context.payload.ref
-  log({ app, context, message: `Value of REF:` + ref })
-
-  if (!isTriggerableReference({ ref, app, context, config })) {
-    log({ app, context, message: `Not a triggerable reference` })
-    return
-  }
-  log({ app, context, message: `It is a triggerableReference` })
-  const { draftRelease, lastRelease } = await findReleases({ app, context })
-  const {
-    commits,
-    pullRequests: mergedPullRequests,
-  } = await findCommitsWithAssociatedPullRequests({
-    app,
-    context,
-    ref,
-    lastRelease,
-    config,
-  })
-
-  const sortedMergedPullRequests = sortPullRequests(
-    mergedPullRequests,
-    config['sort-by'],
-    config['sort-direction']
-  )
-
-  const releaseInfo = generateReleaseInfo({
-    commits,
-    config,
-    lastRelease,
-    mergedPullRequests: sortedMergedPullRequests,
-    version,
-    tag,
-    name,
-    isPreRelease,
-    shouldDraft,
-  })
-
-  let createOrUpdateReleaseResponse
-  if (!draftRelease) {
-    log({ app, context, message: 'Creating new release' })
-    createOrUpdateReleaseResponse = await createRelease({
+    log({ app, context, message: `Init config!` })
+    const config = await getConfig({
+      app,
       context,
-      releaseInfo,
+      configName,
+    })
+
+    const { isPreRelease } = getInput({ config })
+    log({ app, context, message: `Is prerelease:` + isPreRelease })
+
+    if (config === null) {
+      log({ app, context, message: `No configuration found.` })
+      return
+    }
+
+    log({ app, context, message: context })
+
+    // GitHub Actions merge payloads slightly differ, in that their ref points
+    // to the PR branch instead of refs/heads/master
+    const ref = process.env['GITHUB_REF'] || context.payload.ref
+    log({ app, context, message: `Value of REF:` + ref })
+
+    if (!isTriggerableReference({ ref, app, context, config })) {
+      log({ app, context, message: `Not a triggerable reference` })
+      return
+    }
+    log({ app, context, message: `It is a triggerableReference` })
+    const { draftRelease, lastRelease } = await findReleases({ app, context })
+    const {
+      commits,
+      pullRequests: mergedPullRequests,
+    } = await findCommitsWithAssociatedPullRequests({
+      app,
+      context,
+      ref,
+      lastRelease,
       config,
     })
-  } else {
-    log({ app, context, message: 'Updating existing release' })
-    createOrUpdateReleaseResponse = await updateRelease({
-      context,
-      draftRelease,
-      releaseInfo,
-      config,
-    })
-  }
 
-  setActionOutput(createOrUpdateReleaseResponse, releaseInfo)
-  //})
+    const sortedMergedPullRequests = sortPullRequests(
+      mergedPullRequests,
+      config['sort-by'],
+      config['sort-direction']
+    )
+
+    const releaseInfo = generateReleaseInfo({
+      commits,
+      config,
+      lastRelease,
+      mergedPullRequests: sortedMergedPullRequests,
+      version,
+      tag,
+      name,
+      isPreRelease,
+      shouldDraft,
+    })
+
+    let createOrUpdateReleaseResponse
+    if (!draftRelease) {
+      log({ app, context, message: 'Creating new release' })
+      createOrUpdateReleaseResponse = await createRelease({
+        context,
+        releaseInfo,
+        config,
+      })
+    } else {
+      log({ app, context, message: 'Updating existing release' })
+      createOrUpdateReleaseResponse = await updateRelease({
+        context,
+        draftRelease,
+        releaseInfo,
+        config,
+      })
+    }
+
+    setActionOutput(createOrUpdateReleaseResponse, releaseInfo)
+  })
 }
 
 function getInput({ config } = {}) {
