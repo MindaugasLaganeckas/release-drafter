@@ -14,7 +14,7 @@ const core = require('@actions/core')
 console.log("Let's make release")
 
 module.exports = (app) => {
-  app.on('workflow_dispatch', async (context) => {
+  app.on('', async (context) => {
     const { shouldDraft, configName, version, tag, name } = getInput()
 
     log({ app, context, message: `Init config!` })
